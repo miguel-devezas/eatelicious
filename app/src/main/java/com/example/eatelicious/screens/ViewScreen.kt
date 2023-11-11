@@ -40,8 +40,8 @@ fun ViewScreen(
     restaurantId: Int,
     onTitleChanged: (String) -> Unit,
 ) {
-    val restaurant : MutableState<Restaurant> = remember {
-        mutableStateOf(Restaurant(0, "", 0f, "", false))
+    val restaurant : MutableState<com.example.eatelicious.entities.Restaurant> = remember {
+        mutableStateOf(com.example.eatelicious.entities.Restaurant(0, "", 0f, "", false))
     }
 
     val currentContext = LocalContext.current
@@ -88,7 +88,7 @@ fun ViewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    restaurant.value.name ?: "",
+                    restaurant.value.name,
                     style = MaterialTheme.typography.headlineLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(
@@ -115,13 +115,14 @@ fun ViewScreen(
 private fun fetchRestaurant(
     currentContext : Context,
     id: Int,
-    restaurant: MutableState<Restaurant>
+    restaurant: MutableState<com.example.eatelicious.entities.Restaurant>
 ) {
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            restaurant.value = RestaurantRepository.getRestaurant(currentContext, id)
+            restaurant.value = RestaurantRepository().getRestaurant(currentContext, id)
         } catch (_: Exception) {
         }
     }
 }
+
 

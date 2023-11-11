@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -55,7 +61,7 @@ fun ExploreScreen(
 ) {
     onTitleChanged("Explore")
 
-    val restaurants = remember { mutableStateListOf<Restaurant>() }
+    val restaurants = remember { mutableStateListOf<com.example.eatelicious.entities.Restaurant>() }
 
     val currentContext = LocalContext.current
 
@@ -73,7 +79,7 @@ fun ExploreScreen(
 
 @Composable
 fun RestaurantList(
-    restaurants: SnapshotStateList<Restaurant>,
+    restaurants: SnapshotStateList<com.example.eatelicious.entities.Restaurant>,
     onNavigateToRestaurant: (Int) -> Unit,
     onNavigateToEdit: (Int) -> Unit,
     currentContext: Context,
@@ -81,7 +87,9 @@ fun RestaurantList(
     // Creates a CoroutineScope bound to the RestaurantList's lifecycle
     val scope = rememberCoroutineScope()
 
-    LazyColumn (
+    LazyVerticalGrid (
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(
@@ -93,12 +101,12 @@ fun RestaurantList(
                 onNavigateToRestaurant = onNavigateToRestaurant,
                 onNavigateToEdit = onNavigateToEdit
             ) {
-                    id: Int ->
+                    currRestaurant: com.example.eatelicious.entities.Restaurant ->
                 scope.launch {
-                    RestaurantRepository.deleteRestaurant(currentContext, id)
+                    RestaurantRepository().deleteRestaurant(currentContext, currRestaurant)
                 }
                 val filteredRestaurants = restaurants.filterNot {
-                        r: Restaurant -> r.id == id
+                        r: com.example.eatelicious.entities.Restaurant -> r.id == currRestaurant.id
                 }
 
                 restaurants.clear()
@@ -110,10 +118,10 @@ fun RestaurantList(
 
 @Composable
 fun RestaurantCard(
-    restaurant: Restaurant,
+    restaurant: com.example.eatelicious.entities.Restaurant,
     onNavigateToRestaurant: (Int) -> Unit,
     onNavigateToEdit: (Int) -> Unit,
-    onDeleteRestaurant: (Int) -> Unit
+    onDeleteRestaurant: (com.example.eatelicious.entities.Restaurant) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -124,14 +132,14 @@ fun RestaurantCard(
                         onNavigateToRestaurant(restaurant.id)
                     },
                     onDoubleTap = {
-                        onDeleteRestaurant(restaurant.id)
+                        onDeleteRestaurant(restaurant)
                     },
                     onLongPress = {
                         onNavigateToEdit(restaurant.id)
                     }
                 )
             },
-        shape = RectangleShape,
+        shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -139,74 +147,61 @@ fun RestaurantCard(
             Color.White
         )
     ) {
-        Row (
-            Modifier.padding(8.dp)
+        Column (
+            modifier = Modifier.padding(15.dp).align(Alignment.CenterHorizontally)
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(restaurant.imageUrl)
-                    .crossfade(true)
-                    .build(),
-                error = painterResource(R.drawable.error),
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .border(
-                        width = 3.dp,
-                        color = if (restaurant.isActive) Color.Green else Color.LightGray,
-                        shape = CircleShape
-                    )
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column (modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterVertically)) {
-                Text(
-                    restaurant.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(
-                        start = 16.dp, end = 16.dp
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                RatingBar(
-                    restaurant.rating,
-                    modifier = Modifier.padding(
-                        start = 12.dp, end = 16.dp
-                    )
+                    .fillMaxWidth()
+                    .alpha(if (restaurant.isActive) 1.0f else 0.4f)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(restaurant.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    error = painterResource(R.drawable.error),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(RectangleShape)
                 )
             }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                restaurant.name,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(
+                    start = 16.dp, end = 16.dp
+                ).align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            RatingBar(
+                restaurant.rating,
+                modifier = Modifier.padding(
+                    start = 8.dp, end = 8.dp
+                ).align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
 
 private suspend fun fetchRestaurants(
     context: Context,
-    restaurants: SnapshotStateList<Restaurant>,
+    restaurants: SnapshotStateList<com.example.eatelicious.entities.Restaurant>,
     isActive: Boolean
 ) {
     try {
-        val fetchedRestaurants = RestaurantRepository.getRestaurants(
+        val fetchedRestaurants = RestaurantRepository().getRestaurants(
             context, isActive)
 
         restaurants.clear()
         restaurants.addAll(fetchedRestaurants)
-    } catch (_: Exception) {
-    }
-}
-
-
-private suspend fun deleteRestaurant(
-    currentContext: Context, id: Int, onDeleteRestaurant: (Int) -> Unit) {
-    try {
-        RestaurantRepository.deleteRestaurant(currentContext, id)
-        onDeleteRestaurant(id)
     } catch (_: Exception) {
     }
 }

@@ -43,13 +43,13 @@ sealed class Screen(val route: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantApp() {
-    val appBarTitle = remember { mutableStateOf("") }
+    var appBarTitle by remember { mutableStateOf("") }
     val navController = rememberNavController()
 
-    val onExplorePage = remember { mutableStateOf(false) }
+    var onExplorePage by remember { mutableStateOf(false) }
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
-        onExplorePage.value = destination.route == Screen.Explore.route
+        onExplorePage = destination.route == Screen.Explore.route
     }
 
     var showOnlyActiveRestaurants by remember { mutableStateOf(false) }
@@ -59,7 +59,7 @@ fun RestaurantApp() {
             TopAppBar(
                 title = {
                     Text(
-                        appBarTitle.value,
+                        appBarTitle,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
@@ -67,7 +67,7 @@ fun RestaurantApp() {
                     containerColor = MaterialTheme.colorScheme.primary
                 ),
                 actions = {
-                    if (onExplorePage.value) {
+                    if (onExplorePage) {
                         Switch(
                             checked = showOnlyActiveRestaurants,
                             onCheckedChange = { showOnlyActiveRestaurants = it },
@@ -88,7 +88,7 @@ fun RestaurantApp() {
             )
         },
         floatingActionButton = {
-            if (onExplorePage.value) {
+            if (onExplorePage) {
                 FloatingActionButton(
                     onClick = {
                         navController.navigate("${Screen.AddOrEdit.route}/0")
@@ -101,7 +101,7 @@ fun RestaurantApp() {
     ) {
             contentPadding -> NavigationGraph(
         navController, contentPadding, showOnlyActiveRestaurants) {
-            title -> appBarTitle.value = title
+            title -> appBarTitle = title
     }
     }
 }
@@ -114,6 +114,7 @@ fun NavigationGraph(
     showOnlyActiveRestaurants: Boolean,
     onTitleChanged: (String) -> Unit
 ) {
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
@@ -143,7 +144,6 @@ fun NavigationGraph(
                 }
             )
         }
-
         composable(
             "${Screen.View.route}/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
@@ -169,4 +169,3 @@ fun NavigationGraph(
         }
     }
 }
-

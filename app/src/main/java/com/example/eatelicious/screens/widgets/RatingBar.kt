@@ -32,14 +32,10 @@ fun RatingBar(rating: Float, modifier: Modifier) {
                         Icons.Outlined.Star,
                     contentDescription = null,
                     tint = if (isSelected) Color.Cyan else Color.Gray,
-                    modifier = Modifier.padding(4.dp)
+                    modifier = Modifier.padding(2.dp)
                 )
             }
         }
-        Text(
-            text = rating.toString(),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(start = 6.dp)
-        )
     }
 }
+

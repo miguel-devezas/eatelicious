@@ -40,8 +40,8 @@ fun AddEditScreen(
     onTitleChanged: (String) -> Unit,
     onNavigateToExplore: () -> Unit
 ) {
-    val restaurantState : MutableState<Restaurant> = remember {
-        mutableStateOf(Restaurant(0, "", 0f, "", false))
+    val restaurantState : MutableState<com.example.eatelicious.entities.Restaurant> = remember {
+        mutableStateOf(com.example.eatelicious.entities.Restaurant(0, "", 0f, "", false))
     }
 
     val initialized = remember {
@@ -165,7 +165,7 @@ fun AddEditScreen(
                     if (restaurantState.value.name.isNotEmpty() &&
                         restaurantState.value.imageUrl.isNotEmpty()
                     ) {
-                        val newRestaurant = Restaurant(
+                        val newRestaurant = com.example.eatelicious.entities.Restaurant(
                             if (restaurantId == 0)
                                 Random.nextInt(1000, 10000000)
                             else restaurantId,
@@ -196,10 +196,10 @@ fun AddEditScreen(
 private fun fetchRestaurant(
     currentContext: Context,
     id: Int,
-    restaurant: MutableState<Restaurant>) {
+    restaurant: MutableState<com.example.eatelicious.entities.Restaurant>) {
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            restaurant.value = RestaurantRepository.getRestaurant(currentContext, id)
+            restaurant.value = RestaurantRepository().getRestaurant(currentContext, id)
         } catch (_: Exception) {
         }
     }
@@ -207,12 +207,12 @@ private fun fetchRestaurant(
 
 private fun addRestaurant(
     currentContext: Context,
-    restaurant: Restaurant,
+    restaurant: com.example.eatelicious.entities.Restaurant,
     onNavigateToExplore: () -> Unit
 ) {
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            RestaurantRepository.addRestaurant(currentContext, restaurant)
+            RestaurantRepository().addRestaurant(currentContext, restaurant)
             onNavigateToExplore()
         } catch (_: Exception) {
         }
@@ -222,12 +222,12 @@ private fun addRestaurant(
 
 private fun editRestaurant(
     currentContext: Context,
-    restaurant: Restaurant,
+    restaurant: com.example.eatelicious.entities.Restaurant,
     onNavigateToExplore: () -> Unit
 ) {
     CoroutineScope(Dispatchers.Main).launch {
         try {
-            RestaurantRepository.editRestaurant(currentContext, restaurant)
+            RestaurantRepository().editRestaurant(currentContext, restaurant)
             onNavigateToExplore()
         } catch (_: Exception) {
         }

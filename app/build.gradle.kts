@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
+
 }
 
 android {
@@ -30,11 +32,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -51,15 +53,21 @@ android {
 
 dependencies {
 
+    implementation("androidx.room:room-runtime:2.5.1")
+    annotationProcessor("androidx.room:room-compiler:2.5.1")
+
+    // To use Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:2.5.1")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:2.5.1")
+
     // Preferences data store
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
     // Navigation in Compose
     implementation ("androidx.navigation:navigation-compose:2.5.3")
 
-    // Retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // Coroutine library
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
@@ -70,8 +78,6 @@ dependencies {
     // Image loading
     implementation("io.coil-kt:coil-compose:2.3.0")
 
-    // HTTP server
-    implementation ("com.sun.net.httpserver:http:20070405")
 
     implementation("androidx.core:core-ktx:1.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")

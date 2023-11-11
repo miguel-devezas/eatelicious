@@ -1,54 +1,45 @@
 package com.example.eatelicious.repositories
 
 import android.content.Context
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.example.eatelicious.database.RestaurantDatabaseHandler
+import androidx.room.Room
+import com.example.eatelicious.database.RestaurantDatabase
 import com.example.eatelicious.models.Restaurant
-import com.example.eatelicious.screens.AddEditScreen
-import com.example.eatelicious.screens.ExploreScreen
-import com.example.eatelicious.screens.HomeScreen
-import com.example.eatelicious.screens.ViewScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-object RestaurantRepository {
+class RestaurantRepository {
 
-    suspend fun getRestaurants(context: Context, isActive : Boolean) : List<Restaurant> {
+    companion object {
+        private const val RESTAURANT_DB = "restaurants.db"
 
-        lateinit var restaurants: List<Restaurant>
+        @Volatile private var INSTANCE: RestaurantDatabase? = null
 
-        val restaurantDBHandler = RestaurantDatabaseHandler(context = context)
+        fun getInstance(context: Context): RestaurantDatabase =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: buildDatabase(context).also {
+                    INSTANCE = it
+                }
+            }
+
+        private fun buildDatabase(context: Context) =
+            Room.databaseBuilder(
+                context,
+                RestaurantDatabase::class.java, RESTAURANT_DB
+            ).build()
+    }
+
+    suspend fun getRestaurants(context: Context, isActive: Boolean) : List<com.example.eatelicious.entities.Restaurant> {
+        val db = getInstance(context)
+
+        lateinit var restaurants: List<com.example.eatelicious.entities.Restaurant>
 
         withContext(Dispatchers.IO) {
             try {
-                restaurants = restaurantDBHandler.getRestaurants(isActive)
+                restaurants = if (isActive) {
+                    db.restaurantDao().getActiveRestaurants()
+                } else{
+                    db.restaurantDao().getRestaurants()
+                }
             } catch (e: Exception) {
                 println("Failed to fetch restaurant data: ${e.message}")
             }
@@ -57,15 +48,14 @@ object RestaurantRepository {
         return restaurants
     }
 
-    suspend fun getRestaurant(context: Context, id : Int) : Restaurant {
+    suspend fun getRestaurant(context: Context, id : Int) : com.example.eatelicious.entities.Restaurant {
+        lateinit var restaurant: com.example.eatelicious.entities.Restaurant
 
-        lateinit var restaurant: Restaurant
-
-        val restaurantDBHandler = RestaurantDatabaseHandler(context = context)
+        val db = getInstance(context)
 
         withContext(Dispatchers.IO) {
             try {
-                restaurant = restaurantDBHandler.getRestaurant(id)
+                restaurant = db.restaurantDao().getRestaurant(id)
             } catch (e: Exception) {
                 println("Failed to fetch restaurant data: ${e.message}")
             }
@@ -74,36 +64,36 @@ object RestaurantRepository {
         return restaurant
     }
 
-    suspend fun addRestaurant(context: Context, restaurant: Restaurant) {
-        val restaurantDBHandler = RestaurantDatabaseHandler(context = context)
+    suspend fun addRestaurant(context: Context, restaurant: com.example.eatelicious.entities.Restaurant) {
+        val db = getInstance(context)
 
         withContext(Dispatchers.IO) {
             try {
-                restaurantDBHandler.addRestaurant(restaurant)
+                db.restaurantDao().addRestaurant(restaurant)
             } catch (e: Exception) {
                 println("Failed to add restaurant data: ${e.message}")
             }
         }
     }
 
-    suspend fun editRestaurant(context: Context, restaurant: Restaurant) {
-        val restaurantDBHandler = RestaurantDatabaseHandler(context = context)
+    suspend fun editRestaurant(context: Context, restaurant: com.example.eatelicious.entities.Restaurant) {
+        val db = getInstance(context)
 
         withContext(Dispatchers.IO) {
             try {
-                restaurantDBHandler.editRestaurant(restaurant)
+                db.restaurantDao().editRestaurant(restaurant)
             } catch (e: Exception) {
                 println("Failed to edit restaurant data: ${e.message}")
             }
         }
     }
 
-    suspend fun deleteRestaurant(context: Context, id: Int) {
-        val restaurantDBHandler = RestaurantDatabaseHandler(context = context)
+    suspend fun deleteRestaurant(context: Context, restaurant: com.example.eatelicious.entities.Restaurant) {
+        val db = getInstance(context)
 
         withContext(Dispatchers.IO) {
             try {
-                restaurantDBHandler.deleteRestaurant(id)
+                db.restaurantDao().deleteRestaurant(restaurant)
             } catch (e: Exception) {
                 println("Failed to delete restaurant data: ${e.message}")
             }
@@ -111,5 +101,4 @@ object RestaurantRepository {
     }
 
 }
-
 
