@@ -6,10 +6,9 @@ Eatelicious is a project developed as part of a comprehensive Android developmen
 
 ## Course Description
 
-- **Duration**: 1 hour 44 minutes 46 seconds
+- **Duration**: 27 hours 52 minutes 58 seconds
 - **Prerequisites**: None
 - **Expertise Level**: Intermediate
-- **Code**: IT_MDDPCIDJ_03_ENUS
 
 ### Objectives
 
